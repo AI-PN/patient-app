@@ -6,6 +6,8 @@ import DashboardHeader from "@/components/DashboardHeader";
 import DashboardFooter from "@/components/DashboardFooter";
 import { supabase } from "@/utils/supabaseClient";
 import ChatHistoryList from "@/components/dashboard/ChatHistoryList";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import ChatModal from "@/components/dashboard/ChatModal";
 
 const CHATS_PER_PAGE = 5;
 
@@ -17,6 +19,10 @@ const ChatHistoryPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [page, setPage] = useState<number>(1);
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<any>(null);
+  const [patientId, setPatientId] = useState("");
+  const [newChatModalOpen, setNewChatModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserAndChats = async () => {
@@ -37,33 +43,52 @@ const ChatHistoryPage: React.FC = () => {
         );
         setAvatarUrl(null); // Add avatar logic if available
         patientId = patients[0].patient_id;
+        setPatientId(patientId);
       }
+      
       // Fetch chats for this patient
-      const { data: chatsData } = await supabase
-        .from("chats")
-        .select("chat_id, started_at, last_activity_at, patient_id, messages(content, sent_at, sender), navigators(name, email)")
-        .eq("patient_id", patientId)
-        .order("last_activity_at", { ascending: false });
-      if (chatsData && chatsData.length > 0) {
-        const chatList = chatsData.map((chat: { chat_id: string; started_at: string; last_activity_at: string; patient_id: string; messages: { content: string; sent_at: string; sender: string }[]; navigators: { name: string; email: string }[] }) => {
-          const lastMessage = chat.messages && chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
-          return {
-            avatarUrl: null, // Optionally use email hash or static
-            name: chat.navigators?.[0]?.name || "Navigator",
-            role: "Patient Navigator",
-            date: lastMessage?.sent_at ? new Date(lastMessage.sent_at).toLocaleDateString() : "-",
-            preview: lastMessage?.content || "No messages yet.",
-            onView: () => {},
-          };
-        });
-        setChats(chatList);
-      } else {
-        setChats([]);
-      }
-      setLoading(false);
+      fetchChats(patientId);
     };
     fetchUserAndChats();
   }, []);
+
+  const fetchChats = async (id: string) => {
+    if (!id) return;
+    
+    const { data: chatsData } = await supabase
+      .from("chats")
+      .select("chat_id, started_at, last_activity_at, patient_id, messages(content, sent_at, sender), navigators(name, email)")
+      .eq("patient_id", id)
+      .order("last_activity_at", { ascending: false });
+    
+    if (chatsData && chatsData.length > 0) {
+      const chatList = chatsData.map((chat: { chat_id: string; started_at: string; last_activity_at: string; patient_id: string; messages: { content: string; sent_at: string; sender: string }[]; navigators: { name: string; email: string }[] }) => {
+        const lastMessage = chat.messages && chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+        return {
+          chatId: chat.chat_id,
+          navigatorId: null,
+          navigatorName: chat.navigators?.[0]?.name || "Navigator",
+          avatarUrl: null, // Optionally use email hash or static
+          name: chat.navigators?.[0]?.name || "Navigator",
+          role: "Patient Navigator",
+          date: lastMessage?.sent_at ? new Date(lastMessage.sent_at).toLocaleDateString() : "-",
+          preview: lastMessage?.content || "No messages yet.",
+          onView: () => {
+            setSelectedChat({
+              chatId: chat.chat_id,
+              navigatorName: chat.navigators?.[0]?.name || "Navigator",
+              navigatorId: null
+            });
+            setChatModalOpen(true);
+          },
+        };
+      });
+      setChats(chatList);
+    } else {
+      setChats([]);
+    }
+    setLoading(false);
+  };
 
   // Filter and paginate chats
   const filteredChats = chats.filter(
@@ -82,26 +107,40 @@ const ChatHistoryPage: React.FC = () => {
     setPage(1);
   }, [search]);
 
+  const handleChatClosed = () => {
+    setChatModalOpen(false);
+    setNewChatModalOpen(false);
+    fetchChats(patientId);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <DashboardHeader userName={userName} userInitials={userInitials} avatarUrl={avatarUrl} />
       <div className="flex-1 flex w-full">
         <DashboardSidebar activeItem="Chat History" />
-        <main className="flex-1 bg-gray-50 p-8 flex flex-col gap-6 overflow-y-auto">
-          <div className="flex items-center justify-between mb-6">
+        <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-6 overflow-y-auto lg:pb-8 pb-20">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Chat History</h1>
-            <input
-              type="text"
-              placeholder="Search chats..."
-              className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <input
+                type="text"
+                placeholder="Search chats..."
+                className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <button 
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition text-sm w-full sm:w-auto"
+                onClick={() => setNewChatModalOpen(true)}
+              >
+                Start New Chat
+              </button>
+            </div>
           </div>
           <div className="bg-white rounded-2xl shadow-md p-6">
             <ChatHistoryList chats={paginatedChats} />
             {/* Pagination controls */}
-            <div className="flex justify-center mt-6 gap-1">
+            <div className="flex justify-center flex-wrap mt-6 gap-1">
               <button
                 className="px-3 py-1 rounded bg-white text-gray-500 font-semibold text-sm mx-1 border border-gray-200 disabled:opacity-50"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -130,6 +169,25 @@ const ChatHistoryPage: React.FC = () => {
         </main>
       </div>
       <DashboardFooter />
+      <MobileBottomNav />
+      
+      {/* Chat modals */}
+      {selectedChat && (
+        <ChatModal
+          open={chatModalOpen}
+          onClose={handleChatClosed}
+          patientId={patientId}
+          navigatorId={selectedChat.navigatorId}
+          chatId={selectedChat.chatId}
+          navigatorName={selectedChat.navigatorName}
+        />
+      )}
+      
+      <ChatModal
+        open={newChatModalOpen}
+        onClose={handleChatClosed}
+        patientId={patientId}
+      />
     </div>
   );
 };

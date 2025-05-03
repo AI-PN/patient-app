@@ -1,14 +1,14 @@
 import React from "react";
-import { HomeIcon, ChatBubbleLeftRightIcon, DocumentTextIcon, ClipboardDocumentListIcon, CalendarDaysIcon, UserCircleIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
+import { HomeIcon, ChatBubbleLeftRightIcon, DocumentTextIcon, ClipboardDocumentListIcon, CalendarDaysIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 
 const navItems = [
-  { label: "Dashboard", icon: HomeIcon },
-  { label: "Chat History", icon: ChatBubbleLeftRightIcon },
-  { label: "Medical Reports", icon: DocumentTextIcon },
-  { label: "Prescriptions", icon: ClipboardDocumentListIcon },
-  { label: "Appointments", icon: CalendarDaysIcon },
-  { label: "My Profile", icon: UserCircleIcon },
-  { label: "Settings", icon: Cog6ToothIcon },
+  { label: "Dashboard", icon: HomeIcon, href: "/" },
+  { label: "Chat History", icon: ChatBubbleLeftRightIcon, href: "/chat-history" },
+  { label: "Medical Reports", icon: DocumentTextIcon, href: "/medical-records" },
+  { label: "Prescriptions", icon: ClipboardDocumentListIcon, href: "/prescriptions" },
+  { label: "Appointments", icon: CalendarDaysIcon, href: "/appointments" },
+  { label: "My Profile", icon: UserCircleIcon, href: "/profile" },
 ];
 
 interface DashboardSidebarProps {
@@ -18,24 +18,28 @@ interface DashboardSidebarProps {
 const NavItem: React.FC<{
   label: string;
   icon: React.ElementType;
+  href: string;
   active: boolean;
-}> = ({ label, icon: Icon, active }) => (
-  <li
-    className={`flex items-center gap-3 px-4 py-2 my-1 rounded-xl cursor-pointer transition-colors text-base font-medium
-      ${active ? "bg-blue-100 text-blue-700 font-bold" : "bg-transparent text-gray-600 hover:bg-blue-50"}`}
-  >
-    <Icon className={`w-5 h-5 ${active ? "text-blue-600" : "text-gray-400"}`} />
-    <span>{label}</span>
+}> = ({ label, icon: Icon, href, active }) => (
+  <li>
+    <Link
+      href={href}
+      className={`flex items-center gap-3 px-4 py-2 my-1 rounded-xl cursor-pointer transition-colors text-base font-medium
+        ${active ? "bg-blue-100 text-blue-700 font-bold" : "bg-transparent text-gray-600 hover:bg-blue-50"}`}
+    >
+      <Icon className={`w-5 h-5 ${active ? "text-blue-600" : "text-gray-400"}`} />
+      <span>{label}</span>
+    </Link>
   </li>
 );
 
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeItem = "Dashboard" }) => {
   return (
-    <nav className="bg-[#F7FBFF] rounded-2xl min-h-full w-64 flex flex-col justify-between py-10 px-6 gap-4 shadow-md">
+    <nav className="bg-[#F7FBFF] rounded-2xl min-h-full w-64 flex-col justify-between py-10 px-6 gap-4 shadow-md hidden lg:flex">
       <div>
         <ul className="flex flex-col gap-2">
           {navItems.map((item) => (
-            <NavItem key={item.label} label={item.label} icon={item.icon} active={item.label === activeItem} />
+            <NavItem key={item.label} label={item.label} icon={item.icon} href={item.href} active={item.label === activeItem} />
           ))}
         </ul>
       </div>

@@ -5,6 +5,10 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardFooter from "@/components/DashboardFooter";
 import { supabase } from "@/utils/supabaseClient";
+import MedicalRecordsSummaryCards from "@/components/dashboard/MedicalRecordsSummaryCards";
+import { DocumentTextIcon, CalendarDaysIcon, BeakerIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import FileUploadModal from "@/components/dashboard/FileUploadModal";
 
 const REPORTS_PER_PAGE = 5;
 
@@ -21,6 +25,9 @@ const MedicalRecordsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [page, setPage] = useState<number>(1);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [patientId, setPatientId] = useState("");
+  const [selectedReport, setSelectedReport] = useState<any>(null);
 
   useEffect(() => {
     const fetchUserAndReports = async () => {
@@ -41,30 +48,47 @@ const MedicalRecordsPage: React.FC = () => {
         );
         setAvatarUrl(null); // Add avatar logic if available
         patientId = patients[0].patient_id;
+        setPatientId(patientId);
       }
       // Fetch reports for this patient
-      const { data: reportsData } = await supabase
-        .from("reports")
-        .select("name, date, status, file_url, providers(name)")
-        .eq("patient_id", patientId)
-        .order("date", { ascending: false });
-      if (reportsData && reportsData.length > 0) {
-        const reportList = reportsData.map((report: { name: string; date: string; status: string; file_url?: string; providers: { name: string }[] }) => ({
-          name: report.name,
-          date: report.date ? new Date(report.date).toLocaleDateString() : "-",
-          doctor: report.providers?.[0]?.name || "-",
-          status: report.status || "Normal",
-          onView: () => {},
-          onDownload: () => { if (report.file_url) window.open(report.file_url, "_blank"); },
-        }));
-        setReports(reportList);
-      } else {
-        setReports([]);
-      }
-      setLoading(false);
+      fetchReports(patientId);
     };
     fetchUserAndReports();
   }, []);
+
+  const fetchReports = async (id: string) => {
+    if (!id) return;
+    
+    const { data: reportsData } = await supabase
+      .from("reports")
+      .select("name, date, status, file_url, providers(name), type")
+      .eq("patient_id", id)
+      .order("date", { ascending: false });
+      
+    if (reportsData && reportsData.length > 0) {
+      const reportList = reportsData.map((report: { name: string; date: string; status: string; file_url?: string; providers: { name: string }[]; type: string }) => ({
+        name: report.name,
+        date: report.date ? new Date(report.date).toLocaleDateString() : "-",
+        doctor: report.providers?.[0]?.name || "-",
+        status: report.status || "Normal",
+        type: report.type || "Other",
+        onView: () => {
+          if (report.file_url) window.open(report.file_url, "_blank");
+        },
+        onDownload: () => { 
+          if (report.file_url) window.open(report.file_url, "_blank");
+        },
+      }));
+      setReports(reportList);
+    } else {
+      setReports([]);
+    }
+    setLoading(false);
+  };
+
+  const handleUploadSuccess = () => {
+    fetchReports(patientId);
+  };
 
   // Filter and paginate reports
   const filteredReports = reports.filter(
@@ -88,27 +112,59 @@ const MedicalRecordsPage: React.FC = () => {
       <DashboardHeader userName={userName} userInitials={userInitials} avatarUrl={avatarUrl} />
       <div className="flex-1 flex w-full">
         <DashboardSidebar activeItem="Medical Reports" />
-        <main className="flex-1 bg-gray-50 p-8 flex flex-col gap-6 overflow-y-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Medical Records</h1>
-            <input
-              type="text"
-              placeholder="Search reports..."
-              className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-6 overflow-y-auto lg:pb-8 pb-20">
+          {/* Summary Cards */}
+          <MedicalRecordsSummaryCards
+            stats={[
+              { label: "Total Reports", value: reports.length.toString(), icon: DocumentTextIcon },
+              { label: "Last Upload", value: reports.length > 0 ? reports[0].date : "-", icon: CalendarDaysIcon },
+              { label: "Blood Tests", value: reports.filter(r => r.type === "Blood Test").length.toString(), icon: BeakerIcon },
+              { label: "Imaging", value: reports.filter(r => r.type === "Imaging").length.toString(), icon: PhotoIcon },
+            ]}
+          />
+          {/* Filter/Sort Controls and Upload Button */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+            <div className="flex gap-2 flex-wrap w-full md:w-auto">
+              <select 
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                onChange={(e) => setSearch(e.target.value !== "All Types" ? e.target.value : "")}
+              >
+                <option>All Types</option>
+                <option>Blood Test</option>
+                <option>Imaging</option>
+                <option>Allergy Test</option>
+                <option>Vaccination</option>
+                <option>Other</option>
+              </select>
+              <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
+                <option>All Status</option>
+                <option>Normal</option>
+                <option>Review Required</option>
+              </select>
+              <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+            </div>
+            <button 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition text-sm w-full md:w-auto flex-shrink-0"
+              onClick={() => setUploadModalOpen(true)}
+            >
+              Upload Medical Report
+            </button>
           </div>
           <div className="bg-white rounded-2xl shadow-md p-6">
             {loading ? (
               <div className="text-gray-400 text-center py-8">Loading...</div>
             ) : paginatedReports.length === 0 ? (
-              <div className="text-gray-400 text-center py-8">No medical records found</div>
+              <div className="flex flex-col items-center justify-center py-12">
+                <PhotoIcon className="w-16 h-16 text-blue-200 mb-4" />
+                <div className="text-lg font-semibold text-gray-500 mb-2">No medical records found</div>
+                <div className="text-sm text-gray-400">Upload your first report to get started!</div>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left border-separate border-spacing-y-1">
                   <thead>
                     <tr className="text-xs text-gray-500 uppercase">
+                      <th className="py-2 px-2 font-semibold">Type</th>
                       <th className="py-2 px-2 font-semibold">Report Name</th>
                       <th className="py-2 px-2 font-semibold">Date</th>
                       <th className="py-2 px-2 font-semibold">Doctor</th>
@@ -119,15 +175,26 @@ const MedicalRecordsPage: React.FC = () => {
                   <tbody>
                     {paginatedReports.map((report, idx) => (
                       <tr key={idx} className="bg-gray-50 rounded-xl border border-gray-100">
+                        <td className="py-3 px-2">
+                          {report.type === "Blood Test" ? (
+                            <BeakerIcon className="w-5 h-5 text-red-400" />
+                          ) : report.type === "Imaging" ? (
+                            <PhotoIcon className="w-5 h-5 text-purple-400" />
+                          ) : (
+                            <DocumentTextIcon className="w-5 h-5 text-blue-400" />
+                          )}
+                        </td>
                         <td className="py-3 px-2 font-medium text-gray-900">{report.name}</td>
                         <td className="py-3 px-2 text-gray-500 text-sm">{report.date}</td>
                         <td className="py-3 px-2 text-gray-500 text-sm">{report.doctor}</td>
                         <td className="py-3 px-2">
                           <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[report.status] || "bg-gray-100 text-gray-500"}`}>{report.status}</span>
                         </td>
-                        <td className="py-3 px-2 flex gap-2">
-                          <button onClick={report.onView} className="text-blue-600 hover:underline text-xs font-semibold">View</button>
-                          <button onClick={report.onDownload} className="text-blue-600 hover:underline text-xs font-semibold">Download</button>
+                        <td className="py-3 px-2">
+                          <div className="flex gap-2 flex-wrap">
+                            <button onClick={report.onView} className="text-blue-600 hover:underline text-xs font-semibold">View</button>
+                            <button onClick={report.onDownload} className="text-blue-600 hover:underline text-xs font-semibold">Download</button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -136,7 +203,7 @@ const MedicalRecordsPage: React.FC = () => {
               </div>
             )}
             {/* Pagination controls */}
-            <div className="flex justify-center mt-6 gap-1">
+            <div className="flex justify-center flex-wrap mt-6 gap-1">
               <button
                 className="px-3 py-1 rounded bg-white text-gray-500 font-semibold text-sm mx-1 border border-gray-200 disabled:opacity-50"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -165,6 +232,13 @@ const MedicalRecordsPage: React.FC = () => {
         </main>
       </div>
       <DashboardFooter />
+      <MobileBottomNav />
+      <FileUploadModal 
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        patientId={patientId}
+        onUploadSuccess={handleUploadSuccess}
+      />
     </div>
   );
 };

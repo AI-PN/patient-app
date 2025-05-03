@@ -306,12 +306,12 @@ const DashboardBody: React.FC = () => {
   return (
     <div className="flex w-full min-h-[700px]">
       <DashboardSidebar />
-      <main className="flex-1 bg-gray-50 p-8 flex flex-col gap-8 overflow-y-auto">
+      <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto lg:pb-8 pb-20">
         {/* Top summary row */}
         <div className="flex flex-col gap-4 mb-6">
-          <div className="flex justify-between items-start mb-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-2 sm:gap-4">
             <div className="text-2xl font-bold text-gray-900">Hello, {userName}</div>
-            <div className="text-sm text-gray-500">Last updated: {lastUpdated}</div>
+            <div className="text-sm text-gray-500 flex-shrink-0">Last updated: {lastUpdated}</div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
@@ -329,55 +329,55 @@ const DashboardBody: React.FC = () => {
           </div>
         </div>
         {/* Health Summary */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-md p-6">
           <div className="text-lg font-semibold text-gray-900 mb-4">Your Health Summary</div>
           <HealthSummary vitals={vitals} />
         </div>
         {/* Chat History */}
-        <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
             <div className="text-lg font-semibold text-gray-900">Chat History</div>
-            <button className="text-blue-600 text-sm font-semibold flex items-center gap-1"><span>Filter</span></button>
+            {/* Standardize Filter Button - Placeholder */}
           </div>
           {chatHistoryCard}
-          <div className="flex justify-end mt-2">
-            <button className="text-blue-600 text-sm font-semibold">View All Conversations</button>
+          <div className="flex justify-end mt-4">
+            <button className="text-blue-600 text-sm font-semibold hover:underline">View All Conversations</button>
           </div>
         </div>
         {/* Medical Reports */}
-        <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
             <div className="text-lg font-semibold text-gray-900">Medical Reports</div>
-            <div className="flex gap-2">
-              <button className="text-blue-600 text-sm font-semibold flex items-center gap-1"><span>Filter</span></button>
-              <button className="text-blue-600 text-sm font-semibold flex items-center gap-1"><span>Upload</span></button>
+            <div className="flex gap-2 flex-wrap">
+              {/* Standardize Filter Button - Placeholder */}
+              <button className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1"><span>Upload</span></button>
             </div>
           </div>
           {medicalReportsTableCard}
         </div>
         {/* Prescriptions */}
-        <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
             <div className="text-lg font-semibold text-gray-900">Prescriptions</div>
-            <button className="text-blue-600 text-sm font-semibold flex items-center gap-1"><span>Filter</span></button>
+            {/* Standardize Filter Button - Placeholder */}
           </div>
           <PrescriptionsList prescriptions={prescriptions} loading={prescriptionsLoading} />
-          <div className="flex justify-end mt-2">
-            <button className="text-blue-600 text-sm font-semibold">View All Prescriptions</button>
+          <div className="flex justify-end mt-4">
+            <button className="text-blue-600 text-sm font-semibold hover:underline">View All Prescriptions</button>
           </div>
         </div>
         {/* Appointments */}
-        <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
             <div className="text-lg font-semibold text-gray-900">Appointments</div>
-            <div className="flex gap-2">
-              <button className="text-blue-600 text-sm font-semibold flex items-center gap-1"><span>Filter</span></button>
+            <div className="flex gap-2 flex-wrap">
+              {/* Standardize Filter Button - Placeholder */}
               <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1"><span>+ Schedule New</span></button>
             </div>
           </div>
           <AppointmentsList appointments={appointments} loading={appointmentsLoading} />
-          <div className="flex justify-end mt-2">
-            <button className="text-blue-600 text-sm font-semibold">View All Appointments</button>
+          <div className="flex justify-end mt-4">
+            <button className="text-blue-600 text-sm font-semibold hover:underline">View All Appointments</button>
           </div>
         </div>
       </main>

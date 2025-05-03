@@ -7,6 +7,8 @@ import DashboardFooter from "@/components/DashboardFooter";
 import { supabase } from "@/utils/supabaseClient";
 import PharmacyCard from "@/components/dashboard/PharmacyCard";
 import MedicationReminders from "@/components/dashboard/MedicationReminders";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import PrescriptionDetailModal from "@/components/dashboard/PrescriptionDetailModal";
 
 const PRESCRIPTIONS_PER_PAGE = 5;
 
@@ -23,7 +25,11 @@ const PrescriptionsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [page, setPage] = useState<number>(1);
-
+  const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [patientId, setPatientId] = useState("");
+  const [carePlanId, setCarePlanId] = useState("");
+  
   useEffect(() => {
     const fetchUserAndPrescriptions = async () => {
       // Fetch user info
@@ -42,6 +48,8 @@ const PrescriptionsPage: React.FC = () => {
             .toUpperCase()
         );
         setAvatarUrl(null); // Add avatar logic if available
+        setPatientId(patients[0].patient_id);
+        
         // Fetch care plan for this patient
         const { data: carePlans } = await supabase
           .from("care_plans")
@@ -50,42 +58,82 @@ const PrescriptionsPage: React.FC = () => {
           .limit(1);
         if (carePlans && carePlans.length > 0) {
           carePlanId = carePlans[0].care_plan_id;
+          setCarePlanId(carePlanId);
         }
       }
+      
       // Fetch prescriptions for this care plan
-      if (carePlanId) {
-        const { data: meds } = await supabase
-          .from("medications")
-          .select("name, dosage, frequency, created_at")
-          .eq("care_plan_id", carePlanId)
-          .order("created_at", { ascending: false });
-        if (meds && meds.length > 0) {
-          const now = new Date();
-          const prescriptionList = meds.map((med: { name: string; dosage: string; frequency: string; created_at: string }) => {
-            const prescribedOn = med.created_at ? new Date(med.created_at) : null;
-            const status = prescribedOn && (now.getTime() - prescribedOn.getTime()) / (1000 * 60 * 60 * 24) <= 30 ? "Active" : "Expired";
-            return {
+      fetchPrescriptions(carePlanId);
+    };
+    fetchUserAndPrescriptions();
+  }, []);
+
+  const fetchPrescriptions = async (id: string) => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    
+    const { data: meds } = await supabase
+      .from("medications")
+      .select("medication_id, name, dosage, frequency, created_at, instructions, notes, provider_id, providers(name)")
+      .eq("care_plan_id", id)
+      .order("created_at", { ascending: false });
+      
+    if (meds && meds.length > 0) {
+      const now = new Date();
+      const prescriptionList = meds.map((med: any) => {
+        const prescribedOn = med.created_at ? new Date(med.created_at) : null;
+        const status = prescribedOn && (now.getTime() - prescribedOn.getTime()) / (1000 * 60 * 60 * 24) <= 30 ? "Active" : "Expired";
+        return {
+          id: med.medication_id,
+          name: med.name,
+          dosage: med.dosage || "-",
+          frequency: med.frequency || "-",
+          prescribedOn: prescribedOn ? prescribedOn.toLocaleDateString() : "-",
+          prescribedBy: med.providers?.name || "Unknown Doctor",
+          instructions: med.instructions,
+          notes: med.notes,
+          status,
+          onRefill: () => handleRefillRequest(med.medication_id),
+          onDownload: () => handleDownloadPrescription(med.medication_id),
+          onViewHistory: () => {},
+          onView: () => {
+            setSelectedPrescription({
+              id: med.medication_id,
               name: med.name,
               dosage: med.dosage || "-",
               frequency: med.frequency || "-",
               prescribedOn: prescribedOn ? prescribedOn.toLocaleDateString() : "-",
-              status,
-              onRefill: () => {},
-              onDownload: () => {},
-              onViewHistory: () => {},
-            };
-          });
-          setPrescriptions(prescriptionList);
-        } else {
-          setPrescriptions([]);
-        }
-      } else {
-        setPrescriptions([]);
-      }
-      setLoading(false);
-    };
-    fetchUserAndPrescriptions();
-  }, []);
+              prescribedBy: med.providers?.name || "Unknown Doctor",
+              instructions: med.instructions,
+              notes: med.notes,
+              status
+            });
+            setModalOpen(true);
+          }
+        };
+      });
+      setPrescriptions(prescriptionList);
+    } else {
+      setPrescriptions([]);
+    }
+    setLoading(false);
+  };
+
+  const handleRefillRequest = async (medicationId: string) => {
+    // In a real app, this would create a refill request record
+    // For demo purposes, we'll show a confirmation and close the modal
+    alert("Refill request submitted successfully!");
+    setModalOpen(false);
+  };
+
+  const handleDownloadPrescription = (medicationId: string) => {
+    // In a real app, this would generate a PDF prescription
+    // For demo purposes, we'll just use a dummy URL
+    const dummyPdfUrl = `https://example.com/prescriptions/${medicationId}.pdf`;
+    window.open(dummyPdfUrl, '_blank');
+  };
 
   // Filter and paginate prescriptions
   const filteredPrescriptions = prescriptions.filter(
@@ -109,10 +157,10 @@ const PrescriptionsPage: React.FC = () => {
       <DashboardHeader userName={userName} userInitials={userInitials} avatarUrl={avatarUrl} />
       <div className="flex-1 flex w-full">
         <DashboardSidebar activeItem="Prescriptions" />
-        <main className="flex-1 bg-gray-50 p-8 flex flex-col gap-6 overflow-y-auto">
+        <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-6 overflow-y-auto lg:pb-8 pb-20">
           {/* Pharmacy and Reminders */}
           <div className="flex flex-col md:flex-row gap-6 mb-6">
-            <div className="flex-1 min-w-[300px]">
+            <div className="flex-1 min-w-[280px]">
               <PharmacyCard
                 name="City Health Pharmacy"
                 address="123 Main St, Springfield, IL 62704"
@@ -120,21 +168,26 @@ const PrescriptionsPage: React.FC = () => {
                 onContact={() => {}}
               />
             </div>
-            <div className="flex-1 min-w-[300px]">
+            <div className="flex-1 min-w-[280px]">
               <MedicationReminders
-                reminders={[
-                  { name: "Amoxicillin 500mg", time: "8:00 AM", enabled: true, onToggle: () => {} },
-                  { name: "Lisinopril 10mg", time: "9:00 AM", enabled: false, onToggle: () => {} },
-                ]}
+                reminders={prescriptions
+                  .filter(p => p.status === "Active")
+                  .slice(0, 2)
+                  .map(p => ({
+                    name: p.name,
+                    time: p.frequency === "Once daily" ? "8:00 AM" : p.frequency === "Twice daily" ? "9:00 AM" : "Custom",
+                    enabled: true,
+                    onToggle: () => {}
+                  }))}
               />
             </div>
           </div>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Prescriptions</h1>
             <input
               type="text"
               placeholder="Search prescriptions..."
-              className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-200"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -154,19 +207,19 @@ const PrescriptionsPage: React.FC = () => {
                       <div className="text-xs text-gray-400 mb-1">Prescribed on {p.prescribedOn}</div>
                     </div>
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[p.status]}`}>{p.status}</span>
-                    <div className="flex gap-2 mt-2 md:mt-0">
+                    <div className="flex gap-2 flex-wrap mt-2 md:mt-0">
                       {p.status === "Active" && (
                         <button onClick={p.onRefill} className="text-blue-600 hover:underline text-xs font-semibold">Refill</button>
                       )}
                       <button onClick={p.onViewHistory} className="text-gray-500 hover:underline text-xs font-semibold">View History</button>
-                      <button onClick={p.onDownload} className="text-blue-600 hover:underline text-xs font-semibold">Download</button>
+                      <button onClick={p.onView} className="text-blue-600 hover:underline text-xs font-semibold">View Details</button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
             {/* Pagination controls */}
-            <div className="flex justify-center mt-6 gap-1">
+            <div className="flex justify-center flex-wrap mt-6 gap-1">
               <button
                 className="px-3 py-1 rounded bg-white text-gray-500 font-semibold text-sm mx-1 border border-gray-200 disabled:opacity-50"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -195,6 +248,15 @@ const PrescriptionsPage: React.FC = () => {
         </main>
       </div>
       <DashboardFooter />
+      <MobileBottomNav />
+      
+      <PrescriptionDetailModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        prescription={selectedPrescription}
+        onRefill={handleRefillRequest}
+        onDownload={handleDownloadPrescription}
+      />
     </div>
   );
 };

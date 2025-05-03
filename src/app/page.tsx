@@ -5,6 +5,7 @@ import DashboardHeader from "@/components/DashboardHeader";
 import DashboardBody from "@/components/DashboardBody";
 import DashboardFooter from "@/components/DashboardFooter";
 import { supabase } from "@/utils/supabaseClient";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 export default function Home() {
   const [userName, setUserName] = useState<string>("Loading...");
@@ -43,6 +44,7 @@ export default function Home() {
         <DashboardBody />
       </div>
       <DashboardFooter />
+      <MobileBottomNav />
     </div>
   );
 }

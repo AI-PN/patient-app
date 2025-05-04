@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from "react";
+import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
-import DashboardBody from "@/components/DashboardBody";
 import DashboardFooter from "@/components/DashboardFooter";
 import { supabase } from "@/utils/supabaseClient";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import VoiceChatModal from '@/components/dashboard/VoiceChatModal';
-import { PhoneIcon } from '@heroicons/react/24/outline';
+import VoiceHistory from "@/components/dashboard/VoiceHistory";
+import VoiceChatModal from "@/components/dashboard/VoiceChatModal";
 
-export default function Home() {
+const VoiceHistoryPage: React.FC = () => {
   const [userName, setUserName] = useState<string>("Loading...");
   const [userInitials, setUserInitials] = useState<string>("U");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [patientId, setPatientId] = useState<string>("123e4567-e89b-12d3-a456-426614174100"); // Default ID
   const [voiceChatOpen, setVoiceChatOpen] = useState(false);
-
+  
   useEffect(() => {
     const fetchUser = async () => {
       const { data: patients } = await supabase
@@ -46,21 +46,30 @@ export default function Home() {
         avatarUrl={avatarUrl}
       />
       <div className="flex-1 flex w-full">
-        <DashboardBody />
+        <div className="hidden lg:block w-64 h-full sticky top-0">
+          <DashboardSidebar activeItem="Voice History" />
+        </div>
+        <div className="flex-1 max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="pb-5 border-b border-gray-200 mb-5 flex justify-between items-center">
+            <h1 className="text-2xl font-semibold text-gray-900">Voice Chat History</h1>
+            <button
+              onClick={() => setVoiceChatOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              Start New Voice Chat
+            </button>
+          </div>
+          
+          <div className="space-y-6">
+            <VoiceHistory 
+              patientId={patientId}
+              onStartNewVoiceChat={() => setVoiceChatOpen(true)}
+            />
+          </div>
+        </div>
       </div>
       <DashboardFooter />
       <MobileBottomNav />
-      
-      {/* Voice Call Button */}
-      <div className="fixed bottom-24 right-6 z-10">
-        <button 
-          onClick={() => setVoiceChatOpen(true)}
-          className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-          title="Start voice chat"
-        >
-          <PhoneIcon className="h-6 w-6" />
-        </button>
-      </div>
       
       {/* Voice Chat Modal */}
       <VoiceChatModal
@@ -71,4 +80,6 @@ export default function Home() {
       />
     </div>
   );
-}
+};
+
+export default VoiceHistoryPage; 

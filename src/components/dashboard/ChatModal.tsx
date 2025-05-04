@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog } from '@headlessui/react';
-import { XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PaperAirplaneIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { supabase } from '@/utils/supabaseClient';
+import VoiceChatModal from './VoiceChatModal';
 
 interface Message {
   id?: string;
@@ -39,6 +42,7 @@ const ChatModal: React.FC<ChatModalProps> = ({
   const [debugInfo, setDebugInfo] = useState<{chunks: string[]}>({ chunks: [] });
   const [isGenerating, setIsGenerating] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [voiceChatOpen, setVoiceChatOpen] = useState(false);
 
   // Fetch existing messages if continuing a chat
   useEffect(() => {
@@ -441,116 +445,138 @@ const ChatModal: React.FC<ChatModalProps> = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      className="relative z-50"
-    >
-      <div className="fixed inset-0 bg-black/25" />
-      <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4 text-center">
-          <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
-            {/* Chat header */}
-            <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center font-semibold mr-3">
-                  {navigatorName.charAt(0)}
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/25" />
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
+              {/* Chat header */}
+              <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center font-semibold mr-3">
+                    {navigatorName.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-white">{navigatorName}</h3>
+                    <p className="text-xs text-blue-100">Patient Navigator</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-medium text-white">{navigatorName}</h3>
-                  <p className="text-xs text-blue-100">Patient Navigator</p>
+                <div className="flex items-center space-x-2">
+                  {/* Voice Call Button */}
+                  <button
+                    type="button"
+                    className="rounded-md p-1 text-blue-100 hover:text-white bg-green-600 hover:bg-green-700"
+                    onClick={() => setVoiceChatOpen(true)}
+                    title="Start voice call"
+                  >
+                    <PhoneIcon className="h-6 w-6" />
+                  </button>
+                  {/* Close Button */}
+                  <button
+                    type="button"
+                    className="rounded-md p-1 text-blue-100 hover:text-white"
+                    onClick={onClose}
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
                 </div>
               </div>
-              <button
-                type="button"
-                className="rounded-md p-1 text-blue-100 hover:text-white"
-                onClick={onClose}
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
 
-            {/* Error message if applicable */}
-            {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 border-b border-red-100">
-                {error}
-              </div>
-            )}
-
-            {/* Messages container */}
-            <div className="h-96 overflow-y-auto p-4 bg-gray-50">
-              {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <p className="text-gray-500">Loading messages...</p>
+              {/* Error message if applicable */}
+              {error && (
+                <div className="bg-red-50 text-red-600 text-sm p-3 border-b border-red-100">
+                  {error}
                 </div>
-              ) : (
-                <>
-                  {messages.map((msg, index) => {
-                    const isLastMessage = index === messages.length - 1;
-                    const isLLMMessage = msg.sender === 'LLM';
-                    
-                    return (
-                      <div
-                        key={index}
-                        className={`mb-4 flex ${msg.sender === 'Patient' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                            msg.sender === 'Patient'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-800'
-                          }`}
-                        >
-                          {msg.content ? (
-                            <p className="text-sm">{msg.content}</p>
-                          ) : (
-                            isLLMMessage && isLastMessage && isGenerating ? (
-                              <div className="text-sm">
-                                {renderTypingIndicator(isLastMessage)}
-                              </div>
-                            ) : (
-                              <p className="text-sm">{msg.content}</p>
-                            )
-                          )}
-                          <p className="text-xs mt-1 opacity-70">
-                            {new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </>
               )}
-            </div>
 
-            {/* Debug info */}
-            {renderDebugInfo()}
+              {/* Messages container */}
+              <div className="h-96 overflow-y-auto p-4 bg-gray-50">
+                {loading ? (
+                  <div className="flex justify-center items-center h-full">
+                    <p className="text-gray-500">Loading messages...</p>
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((msg, index) => {
+                      const isLastMessage = index === messages.length - 1;
+                      const isLLMMessage = msg.sender === 'LLM';
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`mb-4 flex ${msg.sender === 'Patient' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[75%] rounded-lg px-4 py-2 ${
+                              msg.sender === 'Patient'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 text-gray-800'
+                            }`}
+                          >
+                            {msg.content ? (
+                              <p className="text-sm">{msg.content}</p>
+                            ) : (
+                              isLLMMessage && isLastMessage && isGenerating ? (
+                                <div className="text-sm">
+                                  {renderTypingIndicator(isLastMessage)}
+                                </div>
+                              ) : (
+                                <p className="text-sm">{msg.content}</p>
+                              )
+                            )}
+                            <p className="text-xs mt-1 opacity-70">
+                              {new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
+                  </>
+                )}
+              </div>
 
-            {/* Message input */}
-            <div className="border-t p-4">
-              <form onSubmit={sendMessage} className="flex gap-2">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isGenerating}
-                />
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!message.trim() || isGenerating}
-                >
-                  <PaperAirplaneIcon className="h-5 w-5" />
-                </button>
-              </form>
-            </div>
-          </Dialog.Panel>
+              {/* Debug info */}
+              {renderDebugInfo()}
+
+              {/* Message input */}
+              <div className="border-t p-4">
+                <form onSubmit={sendMessage} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={isGenerating}
+                  />
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!message.trim() || isGenerating}
+                  >
+                    <PaperAirplaneIcon className="h-5 w-5" />
+                  </button>
+                </form>
+              </div>
+            </Dialog.Panel>
+          </div>
         </div>
-      </div>
-    </Dialog>
+      </Dialog>
+      
+      {/* Voice Chat Modal */}
+      <VoiceChatModal
+        open={voiceChatOpen}
+        onClose={() => setVoiceChatOpen(false)}
+        patientId={patientId}
+        navigatorName={navigatorName}
+      />
+    </>
   );
 };
 

@@ -11,9 +11,12 @@ import MedicalReportsTable from "./dashboard/MedicalReportsTable";
 import PrescriptionsList from "./dashboard/PrescriptionsList";
 import AppointmentsList from "./dashboard/AppointmentsList";
 import { supabase } from "@/utils/supabaseClient";
+import Link from "next/link";
+import ScheduleAppointmentModal from "./dashboard/ScheduleAppointmentModal";
 
 // Define types
 interface Appointment {
+  appointment_id?: string;
   providers?: { name: string; specialty?: string };
   care_plans?: { department?: string };
   scheduled_at?: string;
@@ -21,12 +24,14 @@ interface Appointment {
   status?: string;
 }
 interface Medication {
+  medication_id?: string;
   name: string;
   dosage?: string;
   frequency?: string;
   created_at?: string;
 }
 interface Report {
+  report_id?: string;
   name: string;
   summary?: string;
   date?: string;
@@ -74,6 +79,8 @@ const DashboardBody: React.FC = () => {
     onCancel: () => void;
   }>>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState<boolean>(true);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState<boolean>(false);
+  const [currentPatientId, setCurrentPatientId] = useState<string>("123e4567-e89b-12d3-a456-426614174100"); // Default ID
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +91,7 @@ const DashboardBody: React.FC = () => {
         .limit(1);
       if (patients && patients.length > 0) {
         setUserName(patients[0].name);
+        setCurrentPatientId(patients[0].patient_id);
         setLastUpdated(
           patients[0].updated_at
             ? new Date(patients[0].updated_at).toLocaleDateString()
@@ -163,7 +171,7 @@ const DashboardBody: React.FC = () => {
               role: "Patient Navigator",
               date: lastMessage?.sent_at ? new Date(lastMessage.sent_at).toLocaleDateString() : "-",
               preview: lastMessage?.content || "No messages yet.",
-              onView: () => {},
+              onView: () => { window.location.href = `/chat-history?chat=${chat.chat_id}`; },
             };
           });
           setChats(chatList);
@@ -181,7 +189,7 @@ const DashboardBody: React.FC = () => {
             date: report.date ? new Date(report.date).toLocaleDateString() : "-",
             doctor: report.providers?.[0]?.name || "-",
             status: report.status || "Normal",
-            onView: () => {},
+            onView: () => { window.location.href = `/medical-records?report=${report.name}`; },
             onDownload: () => { if (report.file_url) window.open(report.file_url, "_blank"); },
           }));
           setAllReports(reportList);
@@ -205,8 +213,8 @@ const DashboardBody: React.FC = () => {
               prescribedOn: prescribedOn ? prescribedOn.toLocaleDateString() : "-",
               status,
               prescriber: "-", // Extend if provider info is available
-              onView: () => {},
-              onDownload: () => {},
+              onView: () => { window.location.href = `/prescriptions?medication=${med.name}`; },
+              onDownload: () => { alert("Prescription download feature coming soon"); },
             };
           });
           setPrescriptions(prescriptionList);
@@ -221,14 +229,14 @@ const DashboardBody: React.FC = () => {
           .eq("patient_id", patients[0].patient_id)
           .order("scheduled_at", { ascending: false });
         if (allAppointments && allAppointments.length > 0) {
-          const appointmentList = allAppointments.map((appt: { providers?: { name: string }[]; scheduled_at?: string; care_plans?: { department?: string }; location?: string; status?: string }) => ({
+          const appointmentList = allAppointments.map((appt: { appointment_id?: string; providers?: { name: string }[]; scheduled_at?: string; care_plans?: { department?: string }; location?: string; status?: string }) => ({
             doctorName: appt.providers?.[0]?.name || "-",
             dateTime: appt.scheduled_at ? new Date(appt.scheduled_at).toLocaleString() : "-",
             department: appt.care_plans?.department || "-",
             location: appt.location || "-",
             status: appt.status || "-",
-            onView: () => {},
-            onCancel: () => {},
+            onView: () => { window.location.href = `/appointments?view=${appt.appointment_id}`; },
+            onCancel: () => { alert("Appointment cancellation feature coming soon"); },
           }));
           setAppointments(appointmentList);
         } else {
@@ -252,6 +260,7 @@ const DashboardBody: React.FC = () => {
         department={appointment.care_plans?.department || "-"}
         location={appointment.location || "-"}
         status={appointment.status || "Upcoming"}
+        appointmentId={appointment.appointment_id}
       />
     );
   }
@@ -269,6 +278,7 @@ const DashboardBody: React.FC = () => {
         dosage={latestMedication.dosage || latestMedication.frequency || "-"}
         prescribedOn={prescribedDate}
         status={status}
+        medicationId={latestMedication.medication_id}
       />
     );
   }
@@ -285,6 +295,7 @@ const DashboardBody: React.FC = () => {
         uploadedOn={uploadedOn}
         doctorName={recentReport.providers?.[0]?.name || "-"}
         status={recentReport.status || "Normal"}
+        reportId={recentReport.report_id}
       />
     );
   }
@@ -341,7 +352,9 @@ const DashboardBody: React.FC = () => {
           </div>
           {chatHistoryCard}
           <div className="flex justify-end mt-4">
-            <button className="text-blue-600 text-sm font-semibold hover:underline">View All Conversations</button>
+            <Link href="/chat-history" className="text-blue-600 text-sm font-semibold hover:underline">
+              View All Conversations
+            </Link>
           </div>
         </div>
         {/* Medical Reports */}
@@ -350,10 +363,20 @@ const DashboardBody: React.FC = () => {
             <div className="text-lg font-semibold text-gray-900">Medical Reports</div>
             <div className="flex gap-2 flex-wrap">
               {/* Standardize Filter Button - Placeholder */}
-              <button className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1"><span>Upload</span></button>
+              <button 
+                onClick={() => alert("Upload feature coming soon")} 
+                className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1"
+              >
+                <span>Upload</span>
+              </button>
             </div>
           </div>
           {medicalReportsTableCard}
+          <div className="flex justify-end mt-4">
+            <Link href="/medical-records" className="text-blue-600 text-sm font-semibold hover:underline">
+              View All Medical Reports
+            </Link>
+          </div>
         </div>
         {/* Prescriptions */}
         <div className="bg-white rounded-2xl shadow p-6">
@@ -363,7 +386,9 @@ const DashboardBody: React.FC = () => {
           </div>
           <PrescriptionsList prescriptions={prescriptions} loading={prescriptionsLoading} />
           <div className="flex justify-end mt-4">
-            <button className="text-blue-600 text-sm font-semibold hover:underline">View All Prescriptions</button>
+            <Link href="/prescriptions" className="text-blue-600 text-sm font-semibold hover:underline">
+              View All Prescriptions
+            </Link>
           </div>
         </div>
         {/* Appointments */}
@@ -372,14 +397,31 @@ const DashboardBody: React.FC = () => {
             <div className="text-lg font-semibold text-gray-900">Appointments</div>
             <div className="flex gap-2 flex-wrap">
               {/* Standardize Filter Button - Placeholder */}
-              <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1"><span>+ Schedule New</span></button>
+              <button 
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1"
+                onClick={() => setScheduleModalOpen(true)}
+              >
+                <span>+ Schedule New</span>
+              </button>
             </div>
           </div>
           <AppointmentsList appointments={appointments} loading={appointmentsLoading} />
           <div className="flex justify-end mt-4">
-            <button className="text-blue-600 text-sm font-semibold hover:underline">View All Appointments</button>
+            <Link href="/appointments" className="text-blue-600 text-sm font-semibold hover:underline">
+              View All Appointments
+            </Link>
           </div>
         </div>
+        
+        {/* Schedule Appointment Modal */}
+        <ScheduleAppointmentModal
+          open={scheduleModalOpen}
+          onClose={() => setScheduleModalOpen(false)}
+          patientId={currentPatientId}
+          onScheduleSuccess={() => {
+            // Optionally refresh appointments data when scheduled successfully
+          }}
+        />
       </main>
     </div>
   );

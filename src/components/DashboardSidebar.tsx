@@ -37,6 +37,10 @@ const NavItem: React.FC<{
 
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeItem = "Dashboard" }) => {
   const [voiceChatOpen, setVoiceChatOpen] = useState(false);
+  
+  const startNewChat = () => {
+    window.location.href = "/chat-history?new=true&navigator=Dr.%20Sarah%20Johnson";
+  };
 
   return (
     <>
@@ -54,7 +58,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeItem = "Dashb
           <div className="font-semibold text-gray-900 text-base">Dr. Sarah Johnson</div>
           <div className="text-xs text-green-600 font-medium mb-2">Available now</div>
           <div className="flex gap-2 w-full">
-            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-2 rounded-lg transition text-sm">
+            <button 
+              onClick={startNewChat}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-2 rounded-lg transition text-sm">
               Start Chat
             </button>
             <button 

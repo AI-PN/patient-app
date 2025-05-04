@@ -7,7 +7,8 @@ import DashboardFooter from "@/components/DashboardFooter";
 import { supabase } from "@/utils/supabaseClient";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import VoiceChatModal from '@/components/dashboard/VoiceChatModal';
-import { PhoneIcon } from '@heroicons/react/24/outline';
+import { PhoneIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
+import ScheduleAppointmentModal from '@/components/dashboard/ScheduleAppointmentModal';
 
 export default function Home() {
   const [userName, setUserName] = useState<string>("Loading...");
@@ -15,6 +16,7 @@ export default function Home() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [patientId, setPatientId] = useState<string>("123e4567-e89b-12d3-a456-426614174100"); // Default ID
   const [voiceChatOpen, setVoiceChatOpen] = useState(false);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -51,8 +53,15 @@ export default function Home() {
       <DashboardFooter />
       <MobileBottomNav />
       
-      {/* Voice Call Button */}
-      <div className="fixed bottom-24 right-6 z-10">
+      {/* Action buttons */}
+      <div className="fixed bottom-24 right-6 z-10 flex flex-col gap-3">
+        <button 
+          onClick={() => setScheduleModalOpen(true)}
+          className="bg-green-600 text-white p-3 rounded-full shadow-lg hover:bg-green-700 transition-colors"
+          title="Schedule appointment"
+        >
+          <CalendarDaysIcon className="h-6 w-6" />
+        </button>
         <button 
           onClick={() => setVoiceChatOpen(true)}
           className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
@@ -68,6 +77,16 @@ export default function Home() {
         onClose={() => setVoiceChatOpen(false)}
         patientId={patientId}
         navigatorName="AI Health Assistant"
+      />
+      
+      {/* Schedule Appointment Modal */}
+      <ScheduleAppointmentModal
+        open={scheduleModalOpen}
+        onClose={() => setScheduleModalOpen(false)}
+        patientId={patientId}
+        onScheduleSuccess={() => {
+          // Refresh appointments if needed
+        }}
       />
     </div>
   );

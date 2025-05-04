@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { HomeIcon, CalendarDaysIcon, ClipboardDocumentListIcon, UserCircleIcon, DocumentTextIcon } from '@heroicons/react/24/solid'; // Use solid icons for active state feel
-import { useRouter } from 'next/navigation'; // Use next/navigation for App Router
+import { usePathname } from 'next/navigation'; // Use next/navigation for App Router
 
 const navItems = [
   { label: 'Dashboard', href: '/', icon: HomeIcon },
@@ -12,9 +12,7 @@ const navItems = [
 ];
 
 const MobileBottomNav: React.FC = () => {
-  const router = useRouter();
-  // Determine active path - simplistic check for demo
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const pathname = usePathname();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 block border-t border-gray-200 bg-white shadow-lg lg:hidden">

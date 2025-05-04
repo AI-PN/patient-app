@@ -9,6 +9,7 @@ import PharmacyCard from "@/components/dashboard/PharmacyCard";
 import MedicationReminders from "@/components/dashboard/MedicationReminders";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import PrescriptionDetailModal from "@/components/dashboard/PrescriptionDetailModal";
+import { SearchFilter } from '@/components/ui/FilterInput';
 
 const PRESCRIPTIONS_PER_PAGE = 5;
 
@@ -184,12 +185,11 @@ const PrescriptionsPage: React.FC = () => {
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Prescriptions</h1>
-            <input
-              type="text"
+            <SearchFilter
               placeholder="Search prescriptions..."
-              className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-200"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={setSearch}
+              className="w-full md:w-64"
             />
           </div>
           <div className="bg-white rounded-2xl shadow-md p-6">

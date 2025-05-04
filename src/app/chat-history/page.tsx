@@ -8,6 +8,7 @@ import { supabase } from "@/utils/supabaseClient";
 import ChatHistoryList from "@/components/dashboard/ChatHistoryList";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ChatModal from "@/components/dashboard/ChatModal";
+import { SearchFilter } from '@/components/ui/FilterInput';
 
 const CHATS_PER_PAGE = 5;
 
@@ -122,12 +123,11 @@ const ChatHistoryPage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Chat History</h1>
             <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              <input
-                type="text"
+              <SearchFilter
                 placeholder="Search chats..."
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={setSearch}
+                className="w-full md:w-64"
               />
               <button 
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition text-sm w-full sm:w-auto"

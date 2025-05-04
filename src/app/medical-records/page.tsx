@@ -9,6 +9,7 @@ import MedicalRecordsSummaryCards from "@/components/dashboard/MedicalRecordsSum
 import { DocumentTextIcon, CalendarDaysIcon, BeakerIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import FileUploadModal from "@/components/dashboard/FileUploadModal";
+import { SelectFilter, DateFilter } from '@/components/ui/FilterInput';
 
 const REPORTS_PER_PAGE = 5;
 
@@ -125,23 +126,16 @@ const MedicalRecordsPage: React.FC = () => {
           {/* Filter/Sort Controls and Upload Button */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
             <div className="flex gap-2 flex-wrap w-full md:w-auto">
-              <select 
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                onChange={(e) => setSearch(e.target.value !== "All Types" ? e.target.value : "")}
-              >
-                <option>All Types</option>
-                <option>Blood Test</option>
-                <option>Imaging</option>
-                <option>Allergy Test</option>
-                <option>Vaccination</option>
-                <option>Other</option>
-              </select>
-              <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
-                <option>All Status</option>
-                <option>Normal</option>
-                <option>Review Required</option>
-              </select>
-              <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+              <SelectFilter 
+                defaultValue="All Types"
+                options={["All Types", "Blood Test", "Imaging", "Allergy Test", "Vaccination", "Other"]}
+                onChange={(value) => setSearch(value !== "All Types" ? value : "")}
+              />
+              <SelectFilter 
+                defaultValue="All Status"
+                options={["All Status", "Normal", "Review Required"]}
+              />
+              <DateFilter />
             </div>
             <button 
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition text-sm w-full md:w-auto flex-shrink-0"

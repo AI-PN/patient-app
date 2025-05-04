@@ -205,7 +205,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                   <input
                     type="date"
                     id="date"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     min={defaultDate}
@@ -220,7 +220,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                   </label>
                   <select
                     id="time"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     required
@@ -243,7 +243,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                 <input
                   type="text"
                   id="location"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. Medical Center, Room 203"
@@ -258,7 +258,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                 </label>
                 <textarea
                   id="notes"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}

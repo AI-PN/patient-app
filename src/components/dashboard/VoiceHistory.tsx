@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabaseClient';
-import { PhoneIcon } from '@heroicons/react/24/outline';
+import { PhoneIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface VoiceHistoryProps {
   patientId: string;
@@ -22,28 +22,86 @@ interface VoiceHistoryItem {
 export default function VoiceHistory({ patientId, onStartNewVoiceChat }: VoiceHistoryProps) {
   const [voiceChats, setVoiceChats] = useState<VoiceHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [selectedChat, setSelectedChat] = useState<VoiceHistoryItem | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchVoiceHistory() {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('voice_chats')
-          .select('*')
-          .eq('patient_id', patientId)
-          .order('started_at', { ascending: false });
+  // Function to fetch voice history from local database
+  async function fetchLocalHistory() {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('voice_chats')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('started_at', { ascending: false });
 
-        if (error) throw error;
-        setVoiceChats(data || []);
-      } catch (error) {
-        console.error('Error fetching voice chat history:', error);
-      } finally {
-        setLoading(false);
-      }
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching local voice chat history:', error);
+      setError('Failed to load voice history');
+      return [];
+    } finally {
+      setLoading(false);
     }
+  }
 
-    fetchVoiceHistory();
+  // Function to fetch and sync history from Hume API
+  async function syncWithHumeAPI() {
+    try {
+      setSyncing(true);
+      const response = await fetch('/api/hume-history');
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to sync with Hume';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          // If JSON parsing fails, try to get the text
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        console.error('Error response from Hume API:', errorMessage);
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      console.log('Successfully synced with Hume API:', data);
+      return true;
+    } catch (error) {
+      console.error('Error syncing with Hume API:', error);
+      setError('Failed to sync with Hume API: ' + (error instanceof Error ? error.message : String(error)));
+      return false;
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  // Combined function to load all history
+  async function loadAllHistory() {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // First try to sync with Hume API
+      await syncWithHumeAPI();
+      
+      // Then fetch local data (which should now include synced Hume data)
+      const localData = await fetchLocalHistory();
+      setVoiceChats(localData);
+    } catch (error) {
+      console.error('Error loading voice history:', error);
+      setError('Failed to load voice history');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Load history on component mount
+  useEffect(() => {
+    loadAllHistory();
   }, [patientId]);
 
   function formatDate(dateString: string) {
@@ -78,14 +136,30 @@ export default function VoiceHistory({ patientId, onStartNewVoiceChat }: VoiceHi
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Voice Chat History</h2>
-        <button
-          onClick={onStartNewVoiceChat}
-          className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 transition"
-        >
-          <PhoneIcon className="h-4 w-4" />
-          New Voice Call
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={loadAllHistory}
+            className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm hover:bg-blue-200 transition"
+            disabled={syncing || loading}
+          >
+            <ArrowPathIcon className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing...' : 'Sync with Hume'}
+          </button>
+          <button
+            onClick={onStartNewVoiceChat}
+            className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 transition"
+          >
+            <PhoneIcon className="h-4 w-4" />
+            New Voice Call
+          </button>
+        </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
 
       {loading ? (
         <p className="text-center py-8 text-gray-500">Loading voice chat history...</p>
@@ -112,7 +186,18 @@ export default function VoiceHistory({ patientId, onStartNewVoiceChat }: VoiceHi
                   <PhoneIcon className="h-5 w-5 text-blue-600" />
                   <span className="font-medium">Voice Call</span>
                 </div>
-                <span className="text-xs text-gray-500">{formatDate(chat.started_at)}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">{formatDate(chat.started_at)}</span>
+                  <a 
+                    href={`https://app.hume.ai/empathic-voice/chat-history/${chat.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    View on Hume
+                  </a>
+                </div>
               </div>
               
               {selectedChat?.id === chat.id && chat.messages && (

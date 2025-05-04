@@ -221,9 +221,21 @@ const ProfilePage: React.FC = () => {
             <div className="mb-6">
               <div className="text-sm font-semibold text-gray-900 mb-2">Change Password</div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="password" placeholder="Current Password" className="border border-gray-300 rounded-lg px-4 py-2 text-base w-full focus:outline-none focus:ring-2 focus:ring-blue-200" />
-                <input type="password" placeholder="New Password" className="border border-gray-300 rounded-lg px-4 py-2 text-base w-full focus:outline-none focus:ring-2 focus:ring-blue-200" />
-                <input type="password" placeholder="Confirm New Password" className="border border-gray-300 rounded-lg px-4 py-2 text-base w-full focus:outline-none focus:ring-2 focus:ring-blue-200" />
+                <input 
+                  type="password" 
+                  placeholder="Current Password" 
+                  className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-base w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700" 
+                />
+                <input 
+                  type="password" 
+                  placeholder="New Password" 
+                  className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-base w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700" 
+                />
+                <input 
+                  type="password" 
+                  placeholder="Confirm New Password" 
+                  className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-base w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700" 
+                />
               </div>
               <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg text-base">Change Password</button>
             </div>

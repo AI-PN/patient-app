@@ -5,6 +5,7 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon, PaperAirplaneIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { supabase } from '@/utils/supabaseClient';
 import VoiceChatModal from './VoiceChatModal';
+import { SearchFilter } from '@/components/ui/FilterInput';
 
 interface Message {
   id?: string;
@@ -552,7 +553,7 @@ const ChatModal: React.FC<ChatModalProps> = ({
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Type your message..."
-                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                     disabled={isGenerating}
                   />
                   <button

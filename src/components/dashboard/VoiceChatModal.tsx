@@ -8,6 +8,7 @@ import VoiceControls from './VoiceControls';
 import VoiceMessages from './VoiceMessages';
 import { supabase } from '@/utils/supabaseClient';
 import { useVoice } from "@humeai/voice-react";
+import { ensureValidUUID } from '@/utils/humeSync';
 
 interface VoiceChatModalProps {
   open: boolean;
@@ -32,10 +33,24 @@ export default function VoiceChatModal({
   const VoiceWrapper = ({ children }: { children: React.ReactNode }) => {
     const { messages, readyState } = useVoice();
     const messagesRef = useRef(messages);
+    // We can extract conversation ID from call data if available
+    const conversationIdRef = useRef<string | null>(null);
     
-    // Update the ref whenever messages change
+    // Update the refs whenever they change
     useEffect(() => {
       messagesRef.current = messages;
+      
+      // Try to extract conversation ID from messages if available
+      // This depends on the structure of Hume messages
+      const messageWithId = messages.find(msg => msg.type === 'assistant_message' && msg.id);
+      if (messageWithId && 'id' in messageWithId) {
+        // Extract conversation ID from the message ID if possible
+        // Format might be like "conv-123|msg-456"
+        const idParts = String(messageWithId.id).split('|');
+        if (idParts.length > 0 && idParts[0].startsWith('conv-')) {
+          conversationIdRef.current = idParts[0].replace('conv-', '');
+        }
+      }
     }, [messages]);
     
     // Save conversation when call ends or modal closes
@@ -59,9 +74,17 @@ export default function VoiceChatModal({
         
         if (formattedMessages.length === 0) return;
         
+        // Use the conversation ID from Hume if available
+        // Make sure it's a valid UUID
+        const rawChatId = conversationIdRef.current;
+        const chatId = rawChatId ? ensureValidUUID(rawChatId) : undefined;
+        
+        console.log(`Saving voice chat with ID: ${chatId || 'new'}`);
+        
         const { data, error } = await supabase
           .from('voice_chats')
           .insert({
+            id: chatId, // Use Hume's ID if available and valid
             patient_id: patientId,
             started_at: new Date().toISOString(),
             messages: formattedMessages

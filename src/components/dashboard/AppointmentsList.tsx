@@ -15,63 +15,119 @@ interface AppointmentsListProps {
   loading?: boolean;
 }
 
-const statusColors: Record<string, string> = {
-  Upcoming: "bg-blue-100 text-blue-700",
-  Completed: "bg-green-100 text-green-700",
-  Cancelled: "bg-red-100 text-red-700",
+const statusConfig: Record<string, { color: string, bg: string, border: string, icon: string }> = {
+  Upcoming: { 
+    color: "text-blue-700", 
+    bg: "bg-blue-50", 
+    border: "border-blue-200",
+    icon: "⏰"
+  },
+  Completed: { 
+    color: "text-green-700", 
+    bg: "bg-green-50", 
+    border: "border-green-200",
+    icon: "✓"
+  },
+  Cancelled: { 
+    color: "text-red-700", 
+    bg: "bg-red-50", 
+    border: "border-red-200",
+    icon: "✗" 
+  },
 };
 
-const AppointmentRow: React.FC<AppointmentRowData> = ({ doctorName, dateTime, department, location, status, onView, onCancel }) => (
-  <tr className="border-b last:border-b-0">
-    <td className="py-3 px-2 font-medium text-gray-900 flex items-center gap-2">
-      <span className="w-4 h-4 bg-blue-100 rounded-full inline-block mr-2" />
-      {doctorName}
-    </td>
-    <td className="py-3 px-2 text-gray-500 text-sm">{dateTime}</td>
-    <td className="py-3 px-2 text-gray-500 text-sm">{department}</td>
-    <td className="py-3 px-2 text-gray-500 text-sm">{location}</td>
-    <td className="py-3 px-2">
-      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[status] || "bg-gray-100 text-gray-500"}`}>{status}</span>
-    </td>
-    <td className="py-3 px-2 flex gap-2">
-      <button onClick={onView} className="text-blue-600 hover:underline text-xs font-semibold">View</button>
-      {status === "Upcoming" && (
-        <button onClick={onCancel} className="text-red-600 hover:underline text-xs font-semibold">Cancel</button>
-      )}
-    </td>
-  </tr>
-);
+const AppointmentCard: React.FC<AppointmentRowData> = ({ doctorName, dateTime, department, location, status, onView, onCancel }) => {
+  const statusStyle = statusConfig[status] || { 
+    color: "text-gray-700", 
+    bg: "bg-gray-50", 
+    border: "border-gray-200",
+    icon: "•"
+  };
+  
+  const dateParts = dateTime.split(',');
+  const date = dateParts[0];
+  const time = dateParts[1]?.trim() || '';
+  
+  return (
+    <div className="bg-white rounded-xl shadow-sm hover:shadow transition-shadow border border-gray-100 overflow-hidden">
+      <div className="flex flex-col md:flex-row w-full">
+        {/* Left colored status indicator */}
+        <div className={`md:w-2 w-full h-2 md:h-auto ${statusStyle.bg} ${statusStyle.border}`}></div>
+        
+        {/* Content */}
+        <div className="flex-1 p-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-semibold text-gray-900">{doctorName}</h3>
+              <p className="text-sm text-gray-500 mt-1">{department}</p>
+            </div>
+            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.color}`}>
+              <span>{statusStyle.icon}</span> {status}
+            </span>
+          </div>
+          
+          <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>{date}</span>
+            </div>
+            {time && (
+              <div className="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{time}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{location}</span>
+          </div>
+          
+          <div className="mt-4 flex justify-end gap-2">
+            <button 
+              onClick={onView}
+              className="px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-50 transition-colors"
+            >
+              View Details
+            </button>
+            {status === "Upcoming" && (
+              <button 
+                onClick={onCancel}
+                className="px-3 py-1 bg-white border border-red-200 text-red-600 rounded-lg text-xs font-medium hover:bg-red-50 transition-colors"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AppointmentsList: React.FC<AppointmentsListProps> = ({ appointments, loading }) => {
   return (
-    <section className="bg-white rounded-lg shadow p-6 flex flex-col gap-4 min-h-[120px]">
-      <div className="text-sm text-gray-500 font-medium mb-2">Appointments</div>
+    <div className="bg-transparent">
       {loading ? (
-        <div className="text-gray-400 text-center py-8">Loading...</div>
+        <div className="text-gray-400 text-center py-8 bg-white rounded-xl shadow-sm border border-gray-100">Loading...</div>
       ) : appointments.length === 0 ? (
-        <div className="text-gray-400 text-center py-8">No appointments</div>
+        <div className="text-gray-400 text-center py-8 bg-white rounded-xl shadow-sm border border-gray-100">No appointments</div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left border-separate border-spacing-y-1">
-            <thead>
-              <tr className="text-xs text-gray-500 uppercase">
-                <th className="py-2 px-2 font-semibold">Doctor</th>
-                <th className="py-2 px-2 font-semibold">Date & Time</th>
-                <th className="py-2 px-2 font-semibold">Department</th>
-                <th className="py-2 px-2 font-semibold">Location</th>
-                <th className="py-2 px-2 font-semibold">Status</th>
-                <th className="py-2 px-2 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((appt, idx) => (
-                <AppointmentRow key={idx} {...appt} />
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4">
+          {appointments.map((appt, idx) => (
+            <AppointmentCard key={idx} {...appt} />
+          ))}
         </div>
       )}
-    </section>
+    </div>
   );
 };
 

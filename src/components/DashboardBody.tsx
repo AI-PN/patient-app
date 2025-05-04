@@ -338,98 +338,115 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         nextAppointment={nextAppointmentDate}
         healthStatus={healthStatus}
       />
-      <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto lg:pb-8 pb-20">
+      <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-8 overflow-y-auto lg:pb-16 pb-24">
         {/* Top summary row */}
-        <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-2 sm:gap-4">
             <div className="text-2xl font-bold text-gray-900">Hello, {userName}</div>
             <div className="text-sm text-gray-500 flex-shrink-0">Last updated: {lastUpdated}</div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
               <div className="text-xs text-gray-500 font-medium mb-1">Upcoming Appointment</div>
               {appointmentCard}
             </div>
-            <div className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
               <div className="text-xs text-gray-500 font-medium mb-1">Latest Prescription</div>
               {latestPrescriptionCard}
             </div>
-            <div className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
               <div className="text-xs text-gray-500 font-medium mb-1">Recent Report</div>
               {recentReportCard}
             </div>
           </div>
         </div>
+        
         {/* Health Summary */}
-        <div className="bg-white rounded-2xl shadow-md p-6">
-          <div className="text-lg font-semibold text-gray-900 mb-4">Your Health Summary</div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">Your Health Summary</h2>
+          </div>
           <HealthSummary vitals={vitals} />
         </div>
+        
         {/* Chat History */}
-        <div className="bg-white rounded-2xl shadow p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-            <div className="text-lg font-semibold text-gray-900">Chat History</div>
-            {/* Standardize Filter Button - Placeholder */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">Chat History</h2>
           </div>
           {chatHistoryCard}
-          <div className="flex justify-end mt-4">
-            <Link href="/chat-history" className="text-blue-600 text-sm font-semibold hover:underline">
-              View All Conversations
+          <div className="flex justify-end">
+            <Link href="/chat-history" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
+              <span>View All Conversations</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
             </Link>
           </div>
         </div>
+        
         {/* Medical Reports */}
-        <div className="bg-white rounded-2xl shadow p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-            <div className="text-lg font-semibold text-gray-900">Medical Reports</div>
-            <div className="flex gap-2 flex-wrap">
-              {/* Standardize Filter Button - Placeholder */}
-              <button 
-                onClick={() => alert("Upload feature coming soon")} 
-                className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1"
-              >
-                <span>Upload</span>
-              </button>
-            </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">Medical Reports</h2>
+            <button 
+              onClick={() => alert("Upload feature coming soon")} 
+              className="px-4 py-1.5 bg-white shadow-sm border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1 mt-2 sm:mt-0"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <span>Upload New</span>
+            </button>
           </div>
           {medicalReportsTableCard}
-          <div className="flex justify-end mt-4">
-            <Link href="/medical-records" className="text-blue-600 text-sm font-semibold hover:underline">
-              View All Medical Reports
+          <div className="flex justify-end">
+            <Link href="/medical-records" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
+              <span>View All Medical Reports</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
             </Link>
           </div>
         </div>
+        
         {/* Prescriptions */}
-        <div className="bg-white rounded-2xl shadow p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-            <div className="text-lg font-semibold text-gray-900">Prescriptions</div>
-            {/* Standardize Filter Button - Placeholder */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">Prescriptions</h2>
           </div>
           <PrescriptionsList prescriptions={prescriptions} loading={prescriptionsLoading} />
-          <div className="flex justify-end mt-4">
-            <Link href="/prescriptions" className="text-blue-600 text-sm font-semibold hover:underline">
-              View All Prescriptions
+          <div className="flex justify-end">
+            <Link href="/prescriptions" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
+              <span>View All Prescriptions</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
             </Link>
           </div>
         </div>
+        
         {/* Appointments */}
-        <div className="bg-white rounded-2xl shadow p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-            <div className="text-lg font-semibold text-gray-900">Appointments</div>
-            <div className="flex gap-2 flex-wrap">
-              {/* Standardize Filter Button - Placeholder */}
-              <button 
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1"
-                onClick={() => setScheduleModalOpen(true)}
-              >
-                <span>+ Schedule New</span>
-              </button>
-            </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">Appointments</h2>
+            <button 
+              className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 shadow-sm text-white text-sm font-medium rounded-lg transition flex items-center gap-1 mt-2 sm:mt-0"
+              onClick={() => setScheduleModalOpen(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span>Schedule New</span>
+            </button>
           </div>
           <AppointmentsList appointments={appointments} loading={appointmentsLoading} />
-          <div className="flex justify-end mt-4">
-            <Link href="/appointments" className="text-blue-600 text-sm font-semibold hover:underline">
-              View All Appointments
+          <div className="flex justify-end">
+            <Link href="/appointments" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
+              <span>View All Appointments</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
             </Link>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { ChatBubbleLeftRightIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 
 interface Chat {
   avatarUrl?: string | null;
@@ -13,46 +14,77 @@ interface ChatHistoryListProps {
   chats: Chat[];
 }
 
-const ChatHistoryItem: React.FC<Chat> = ({ avatarUrl, name, role, date, preview, onView }) => (
-  <div className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-100 mb-3">
-    <div className="flex items-center gap-3 flex-shrink-0">
-      {avatarUrl ? (
-        <img src={avatarUrl} alt={name} className="w-10 h-10 rounded-full object-cover border" />
-      ) : (
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-lg border">{name.charAt(0)}</div>
-      )}
-      <div>
-        <div className="font-semibold text-gray-900 text-base leading-tight">{name}</div>
-        <div className="text-xs text-gray-500">{role}</div>
+const ChatHistoryItem: React.FC<Chat> = ({ avatarUrl, name, role, date, preview, onView }) => {
+  // Get initials for avatar fallback
+  const initials = name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase();
+    
+  return (
+    <div className="bg-white rounded-xl shadow-sm hover:shadow transition-shadow border border-gray-100 overflow-hidden">
+      <div className="p-5">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex items-start gap-3">
+            {avatarUrl ? (
+              <img 
+                src={avatarUrl} 
+                alt={name} 
+                className="w-10 h-10 rounded-full object-cover border border-blue-100 shadow-sm" 
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
+                {initials}
+              </div>
+            )}
+            <div>
+              <div className="font-semibold text-gray-900">{name}</div>
+              <div className="text-xs text-blue-600 font-medium">{role}</div>
+            </div>
+          </div>
+          <div className="text-xs text-gray-400 whitespace-nowrap">{date}</div>
+        </div>
+        
+        <div className="mt-3 flex gap-3">
+          <div className="w-10 flex-shrink-0"></div>
+          <div className="flex-1">
+            <div className="text-sm text-gray-600 line-clamp-2 bg-gray-50 p-3 rounded-lg rounded-tl-none border border-gray-100">
+              {preview}
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onView}
+            className="px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-50 transition-colors flex items-center gap-1 shadow-sm"
+          >
+            <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+            <span>View Conversation</span>
+          </button>
+        </div>
       </div>
     </div>
-    <div className="flex-1 flex flex-col gap-1">
-      <div className="text-xs text-gray-400">{date}</div>
-      <div className="text-sm text-gray-700 line-clamp-2">{preview}</div>
-    </div>
-    <button
-      onClick={onView}
-      className="mt-2 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition self-start md:self-center"
-    >
-      View Full Conversation
-    </button>
-  </div>
-);
+  );
+};
 
 const ChatHistoryList: React.FC<ChatHistoryListProps> = ({ chats }) => {
   return (
-    <section className="bg-white rounded-lg shadow p-6 flex flex-col gap-4 min-h-[120px]">
-      <div className="text-sm text-gray-500 font-medium mb-2">Chat History</div>
+    <div className="bg-transparent">
       {chats.length === 0 ? (
-        <div className="text-gray-400 text-center py-8">No chat history</div>
+        <div className="text-gray-400 text-center py-8 bg-white rounded-xl shadow-sm border border-gray-100">
+          <ChatBubbleLeftRightIcon className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+          <div>No chat history</div>
+        </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 gap-4">
           {chats.map((chat, idx) => (
             <ChatHistoryItem key={idx} {...chat} />
           ))}
         </div>
       )}
-    </section>
+    </div>
   );
 };
 

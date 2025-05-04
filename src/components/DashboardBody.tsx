@@ -52,7 +52,12 @@ interface Prescription {
   onDownload: () => void;
 }
 
-const DashboardBody: React.FC = () => {
+interface DashboardBodyProps {
+  patientName?: string;
+  patientEmail?: string;
+}
+
+const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail }) => {
   const [userName, setUserName] = useState<string>("Loading...");
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [appointment, setAppointment] = useState<Appointment | null>(null);
@@ -314,9 +319,25 @@ const DashboardBody: React.FC = () => {
     medicalReportsTableCard = <MedicalReportsTable reports={allReports} />;
   }
 
+  // Find the next appointment for the sidebar
+  const nextAppointmentDate = appointment && appointment.scheduled_at
+    ? new Date(appointment.scheduled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : "May 12"; // Default fallback date
+  
+  // Determine health status based on vitals
+  const healthStatus = vitals.length > 0 && vitals.some(v => v.status !== "Normal") 
+    ? "Monitor" 
+    : "Healthy";
+
   return (
     <div className="flex w-full min-h-[700px]">
-      <DashboardSidebar />
+      <DashboardSidebar 
+        activeItem="Dashboard" 
+        patientName={patientName || userName}
+        patientEmail={patientEmail}
+        nextAppointment={nextAppointmentDate}
+        healthStatus={healthStatus}
+      />
       <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto lg:pb-8 pb-20">
         {/* Top summary row */}
         <div className="flex flex-col gap-4 mb-6">

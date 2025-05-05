@@ -360,25 +360,25 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         healthStatus={healthStatus}
       />
       <main className="flex-1 bg-gray-50 p-6 md:p-8 flex flex-col gap-8 overflow-y-auto lg:pb-16 pb-24">
-        {/* Top summary row */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-2 sm:gap-4">
-            <div className="text-2xl font-bold text-gray-900">Hello, {profile?.name || patientName || "Patient"}</div>
-            <div className="text-sm text-gray-500 flex-shrink-0">Last updated: {lastUpdated}</div>
+        {/* Welcome heading */}
+        <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-2 sm:gap-4">
+          <div className="text-2xl font-bold text-gray-900">Hello, {profile?.name || patientName || "Patient"}</div>
+          <div className="text-sm text-gray-500 flex-shrink-0">Last updated: {lastUpdated}</div>
+        </div>
+        
+        {/* Top summary cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
+            <div className="text-xs text-gray-500 font-medium mb-1">Upcoming Appointment</div>
+            {appointmentCard}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
-              <div className="text-xs text-gray-500 font-medium mb-1">Upcoming Appointment</div>
-              {appointmentCard}
-            </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
-              <div className="text-xs text-gray-500 font-medium mb-1">Latest Prescription</div>
-              {latestPrescriptionCard}
-            </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
-              <div className="text-xs text-gray-500 font-medium mb-1">Recent Report</div>
-              {recentReportCard}
-            </div>
+          <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
+            <div className="text-xs text-gray-500 font-medium mb-1">Latest Prescription</div>
+            {latestPrescriptionCard}
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border border-gray-100">
+            <div className="text-xs text-gray-500 font-medium mb-1">Recent Report</div>
+            {recentReportCard}
           </div>
         </div>
         
@@ -390,85 +390,159 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
           <HealthSummary vitals={vitals} />
         </div>
         
-        {/* Chat History */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">Chat History</h2>
+        {/* Summary Cards Grid - Replace detailed sections with overview cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          {/* Chat Summary Card */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Chat History</h3>
+              <Link href="/chat-history" className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
+                View All
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            </div>
+            {chatsLoading ? (
+              <div className="animate-pulse flex space-x-4">
+                <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+                <div className="flex-1 space-y-2 py-1">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            ) : chats && chats.length > 0 ? (
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 font-medium text-sm">{chats[0].name.substring(0, 2)}</span>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-800">{chats[0].name}</div>
+                  <div className="text-sm text-gray-500 mt-1 line-clamp-2">{chats[0].preview}</div>
+                  <div className="text-xs text-gray-400 mt-1">{chats[0].date}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">No recent chats</div>
+            )}
           </div>
-          {chatHistoryCard}
-          <div className="flex justify-end">
-            <Link href="/chat-history" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
-              <span>View All Conversations</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </Link>
+          
+          {/* Medical Reports Summary Card */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Medical Reports</h3>
+              <Link href="/medical-records" className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
+                View All
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            </div>
+            {allReportsLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ) : allReports && allReports.length > 0 ? (
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium text-gray-800">Total Reports:</span> {allReports.length}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium text-gray-800">Most Recent:</span> {allReports[0].name}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium text-gray-800">Date:</span> {allReports[0].date}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">No medical reports available</div>
+            )}
           </div>
-        </div>
-        
-        {/* Medical Reports */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">Medical Reports</h2>
-            <button 
-              onClick={() => alert("Upload feature coming soon")} 
-              className="px-4 py-1.5 bg-white shadow-sm border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1 mt-2 sm:mt-0"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <span>Upload New</span>
-            </button>
+          
+          {/* Prescriptions Summary Card */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Prescriptions</h3>
+              <Link href="/prescriptions" className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
+                View All
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            </div>
+            {prescriptionsLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ) : prescriptions && prescriptions.length > 0 ? (
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium text-gray-800">Active Prescriptions:</span> {prescriptions.filter(p => p.status === "Active").length}
+                </div>
+                {prescriptions.length > 0 && (
+                  <>
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-800">Latest Medication:</span> {prescriptions[0].name}
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-800">Prescribed On:</span> {prescriptions[0].prescribedOn}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">No prescriptions available</div>
+            )}
           </div>
-          {medicalReportsTableCard}
-          <div className="flex justify-end">
-            <Link href="/medical-records" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
-              <span>View All Medical Reports</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-        
-        {/* Prescriptions */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">Prescriptions</h2>
-          </div>
-          <PrescriptionsList prescriptions={prescriptions} loading={prescriptionsLoading} />
-          <div className="flex justify-end">
-            <Link href="/prescriptions" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
-              <span>View All Prescriptions</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-        
-        {/* Appointments */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">Appointments</h2>
-            <button 
-              className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 shadow-sm text-white text-sm font-medium rounded-lg transition flex items-center gap-1 mt-2 sm:mt-0"
-              onClick={() => setScheduleModalOpen(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span>Schedule New</span>
-            </button>
-          </div>
-          <AppointmentsList appointments={appointments} loading={appointmentsLoading} />
-          <div className="flex justify-end">
-            <Link href="/appointments" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
-              <span>View All Appointments</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </Link>
+          
+          {/* Appointments Summary Card */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Appointments</h3>
+              <div className="flex items-center gap-2">
+                <button 
+                  className="p-1.5 bg-blue-600 hover:bg-blue-700 shadow-sm text-white text-xs font-medium rounded-lg transition flex items-center gap-1"
+                  onClick={() => setScheduleModalOpen(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>New</span>
+                </button>
+                <Link href="/appointments" className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
+                  View All
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+            {appointmentsLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ) : appointments && appointments.length > 0 ? (
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium text-gray-800">Upcoming:</span> {appointments.filter(a => a.status === "Upcoming").length}
+                </div>
+                {appointments.length > 0 && (
+                  <>
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-800">Next Appointment:</span> {appointments[0].doctorName}
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-800">Date:</span> {appointments[0].dateTime}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">No appointments scheduled</div>
+            )}
           </div>
         </div>
         

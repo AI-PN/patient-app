@@ -1,77 +1,28 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardBody from "@/components/DashboardBody";
 import DashboardFooter from "@/components/DashboardFooter";
-import { supabase } from "@/utils/supabaseClient";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import VoiceChatModal from '@/components/dashboard/VoiceChatModal';
 import { PhoneIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
 import ScheduleAppointmentModal from '@/components/dashboard/ScheduleAppointmentModal';
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [userName, setUserName] = useState<string>("");
-  const [userInitials, setUserInitials] = useState<string>("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [patientId, setPatientId] = useState<string>("123e4567-e89b-12d3-a456-426614174100"); // Default ID
-  const [patientEmail, setPatientEmail] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { profile, isLoading } = useAuth();
   const [voiceChatOpen, setVoiceChatOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const router = useRouter();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: patients, error } = await supabase
-          .from("patients")
-          .select("patient_id, name, email")
-          .limit(1);
-          
-        if (error) {
-          console.error("Error fetching patient data:", error);
-          setUserName("John Smith");
-          setUserInitials("JS");
-          setPatientEmail("patient@medconnect.com"); 
-        } else if (patients && patients.length > 0) {
-          setUserName(patients[0].name);
-          setPatientId(patients[0].patient_id);
-          
-          if (patients[0].email) {
-            setPatientEmail(patients[0].email);
-          } else {
-            setPatientEmail("patient@medconnect.com");
-          }
-          
-          const initials = patients[0].name
-            .split(" ")
-            .map((n: string) => n[0])
-            .join("")
-            .toUpperCase();
-          setUserInitials(initials);
-          
-          setAvatarUrl(null);
-        } else {
-          setUserName("John Smith");
-          setUserInitials("JS");
-          setPatientEmail("patient@medconnect.com");
-        }
-      } catch (error) {
-        console.error("Error in fetchUser:", error);
-        setUserName("John Smith");
-        setUserInitials("JS");
-        setPatientEmail("patient@medconnect.com");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchUser();
-  }, []);
-
-  const displayName = userName || "John Smith";
-  const displayInitials = userInitials || "JS";
-  const displayEmail = patientEmail || "patient@medconnect.com";
+  // Use the profile data from AuthContext instead of direct Supabase calls
+  const patientId = profile?.id || "123e4567-e89b-12d3-a456-426614174100"; // Default ID
+  const displayName = profile?.name || "John Smith";
+  const displayInitials = profile?.initials || "JS";
+  const displayEmail = profile?.email || "patient@medconnect.com";
+  const avatarUrl = profile?.avatarUrl || null;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">

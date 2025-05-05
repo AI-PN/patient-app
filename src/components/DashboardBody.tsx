@@ -13,6 +13,7 @@ import AppointmentsList from "./dashboard/AppointmentsList";
 import { supabase } from "@/utils/supabaseClient";
 import Link from "next/link";
 import ScheduleAppointmentModal from "./dashboard/ScheduleAppointmentModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define types
 interface Appointment {
@@ -58,7 +59,7 @@ interface DashboardBodyProps {
 }
 
 const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail }) => {
-  const [userName, setUserName] = useState<string>("Loading...");
+  const { profile } = useAuth();
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [appointmentLoading, setAppointmentLoading] = useState<boolean>(true);
@@ -85,28 +86,37 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
   }>>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState<boolean>(true);
   const [scheduleModalOpen, setScheduleModalOpen] = useState<boolean>(false);
-  const [currentPatientId, setCurrentPatientId] = useState<string>("123e4567-e89b-12d3-a456-426614174100"); // Default ID
+  
+  // Use the profile id from AuthContext
+  const currentPatientId = profile?.id || "123e4567-e89b-12d3-a456-426614174100"; // Default ID
 
   useEffect(() => {
     const fetchData = async () => {
-      // Get the first patient as the current user (for demo)
-      const { data: patients }: { data: { patient_id: string; name: string; updated_at?: string; navigator_id?: string }[] | null } = await supabase
-        .from("patients")
-        .select("patient_id, name, updated_at, navigator_id")
-        .limit(1);
-      if (patients && patients.length > 0) {
-        setUserName(patients[0].name);
-        setCurrentPatientId(patients[0].patient_id);
-        setLastUpdated(
-          patients[0].updated_at
-            ? new Date(patients[0].updated_at).toLocaleDateString()
-            : "-"
-        );
+      try {
+        // Use the patient ID from profile
+        const patientId = profile?.id || "123e4567-e89b-12d3-a456-426614174100";
+        
+        // Get updates timestamp
+        const { data: patientData } = await supabase
+          .from("patients")
+          .select("updated_at")
+          .eq("patient_id", patientId)
+          .single();
+          
+        if (patientData?.updated_at) {
+          setLastUpdated(new Date(patientData.updated_at).toLocaleDateString());
+        } else {
+          setLastUpdated("-");
+        }
+
+        // The rest of your data fetching using patientId
+        // ...
+        
         // Fetch next upcoming appointment
         const { data: appointments } = await supabase
           .from("appointments")
           .select("*, providers(name, specialty), care_plans(department)")
-          .eq("patient_id", patients[0].patient_id)
+          .eq("patient_id", patientId)
           .eq("status", "Upcoming")
           .order("scheduled_at", { ascending: true })
           .limit(1);
@@ -118,7 +128,7 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         const { data: medications } = await supabase
           .from("medications")
           .select("name, dosage, frequency, created_at")
-          .eq("care_plan_id", patients[0].patient_id) // If care_plan_id is not patient_id, adjust this line
+          .eq("care_plan_id", patientId) // If care_plan_id is not patient_id, adjust this line
           .order("created_at", { ascending: false })
           .limit(1);
         if (medications && medications.length > 0) {
@@ -129,7 +139,7 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         const { data: reports } = await supabase
           .from("reports")
           .select("name, summary, date, status, doctor_id, created_at, providers(name)")
-          .eq("patient_id", patients[0].patient_id)
+          .eq("patient_id", patientId)
           .order("date", { ascending: false })
           .limit(1);
         if (reports && reports.length > 0) {
@@ -141,7 +151,7 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         const { data: vitalsData } = await supabase
           .from("vitals")
           .select("type, value, unit, status, measured_at")
-          .eq("patient_id", patients[0].patient_id)
+          .eq("patient_id", patientId)
           .in("type", vitalTypes)
           .order("measured_at", { ascending: false });
         if (vitalsData && vitalsData.length > 0) {
@@ -160,11 +170,12 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
           }
           setVitals(latestVitals);
         }
+        setVitalsLoading(false);
         // Fetch recent chats
         const { data: chatsData } = await supabase
           .from("chats")
           .select("chat_id, started_at, last_activity_at, patient_id, messages(content, sent_at, sender), navigators(name, email)")
-          .eq("patient_id", patients[0].patient_id)
+          .eq("patient_id", patientId)
           .order("last_activity_at", { ascending: false })
           .limit(3);
         if (chatsData && chatsData.length > 0) {
@@ -186,7 +197,7 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         const { data: allReportsData } = await supabase
           .from("reports")
           .select("name, date, status, file_url, providers(name)")
-          .eq("patient_id", patients[0].patient_id)
+          .eq("patient_id", patientId)
           .order("date", { ascending: false });
         if (allReportsData && allReportsData.length > 0) {
           const reportList = allReportsData.map((report: { name: string; date: string; status: string; file_url?: string; providers: { name: string }[] }) => ({
@@ -204,7 +215,7 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         const { data: allMeds } = await supabase
           .from("medications")
           .select("name, dosage, frequency, created_at")
-          .eq("care_plan_id", patients[0].patient_id)
+          .eq("care_plan_id", patientId)
           .order("created_at", { ascending: false });
         if (allMeds && allMeds.length > 0) {
           const now = new Date();
@@ -231,7 +242,7 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         const { data: allAppointments } = await supabase
           .from("appointments")
           .select("*, providers(name), care_plans(department)")
-          .eq("patient_id", patients[0].patient_id)
+          .eq("patient_id", patientId)
           .order("scheduled_at", { ascending: false });
         if (allAppointments && allAppointments.length > 0) {
           const appointmentList = allAppointments.map((appt: { appointment_id?: string; providers?: { name: string }[]; scheduled_at?: string; care_plans?: { department?: string }; location?: string; status?: string }) => ({
@@ -248,11 +259,21 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
           setAppointments([]);
         }
         setAppointmentsLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setVitalsLoading(false);
+        setAppointmentLoading(false);
+        setMedicationLoading(false);
+        setReportLoading(false);
+        setChatsLoading(false);
+        setAllReportsLoading(false);
+        setPrescriptionsLoading(false);
+        setAppointmentsLoading(false);
       }
-      setVitalsLoading(false);
     };
+    
     fetchData();
-  }, []);
+  }, [profile]);
 
   let appointmentCard = <div className="bg-white rounded-lg shadow p-6 flex items-center justify-center min-h-[120px] text-gray-400">No upcoming appointments</div>;
   if (appointmentLoading) {
@@ -333,8 +354,8 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
     <div className="flex w-full min-h-[700px]">
       <DashboardSidebar 
         activeItem="Dashboard" 
-        patientName={patientName || userName}
-        patientEmail={patientEmail}
+        patientName={profile?.name || patientName || "Patient"}
+        patientEmail={profile?.email || patientEmail || ""}
         nextAppointment={nextAppointmentDate}
         healthStatus={healthStatus}
       />
@@ -342,7 +363,7 @@ const DashboardBody: React.FC<DashboardBodyProps> = ({ patientName, patientEmail
         {/* Top summary row */}
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-2 sm:gap-4">
-            <div className="text-2xl font-bold text-gray-900">Hello, {userName}</div>
+            <div className="text-2xl font-bold text-gray-900">Hello, {profile?.name || patientName || "Patient"}</div>
             <div className="text-sm text-gray-500 flex-shrink-0">Last updated: {lastUpdated}</div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

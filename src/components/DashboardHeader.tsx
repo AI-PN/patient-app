@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import MedConnectLogo from "./MedConnectLogo";
 import Link from "next/link";
 import { BellIcon, UserCircleIcon, CogIcon, ChevronDownIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
   pageTitle?: string;
@@ -26,6 +27,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { signOut } = useAuth();
   
   // Sample notifications - in a real app, these would come from props or a context
   // For now, let's not show any notifications by default unless there's actual data
@@ -44,6 +46,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   // Display name handling
   const displayName = userName === "Loading..." ? "Welcome" : userName;
   const displayInitials = userInitials === "U" || userInitials === "L" ? "MC" : userInitials;
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    await signOut();
+    setDropdownOpen(false);
+  };
 
   return (
     <header className="w-full bg-white border-b border-gray-200 shadow-sm px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-30">
@@ -148,6 +156,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 </Link>
                 <div className="border-t border-gray-100 my-1"></div>
                 <button 
+                  onClick={handleSignOut}
                   className="flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-50 w-full text-left"
                 >
                   <span>Sign Out</span>
